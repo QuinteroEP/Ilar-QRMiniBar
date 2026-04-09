@@ -22,11 +22,16 @@ def get_all_products():
         SELECT * FROM product
         """
     cursor.execute(get_all_query)
-    return {}
+    return cursor.fetchall()
 
 @router.get("/products/{product_id}")
 def get_product_by_id(id: float):
-    return {}
+    find_query = """
+        SELECT * FROM product
+        WHERE id = %s
+        """
+    cursor.execute(find_query, (id,))
+    return cursor.fetchone()
 
 @router.post("/products/add/")
 def post_products(name: str, price: float, inventory: int):
@@ -40,9 +45,23 @@ def post_products(name: str, price: float, inventory: int):
     return {}
 
 @router.put("/products/update/{product_id}")
-def put_product(name: str, price: float, inventory: int):
+def update_product(name: str, price: float, inventory: int, id: float):
+    params = (name, price, inventory, id)
+    update_query = """
+        UPDATE product 
+        SET name = %s, price = %s, inventory = %s
+        WHERE id = %s
+        """
+    cursor.execute(update_query, params)
+    connection.commit()
     return {}
 
 @router.delete("/products/delete/{product_id}")
 def delete_product(id: float):
+    delete_query = """
+        DELETE FROM product
+        WHERE id = %s
+        """
+    cursor.execute(delete_query, (id,))
+    connection.commit()
     return {}

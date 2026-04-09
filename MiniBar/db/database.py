@@ -4,8 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-
-def innit():
+def connect():
     dbpass = os.getenv("ILAR_PASS") 
 
     try:
@@ -14,8 +13,12 @@ def innit():
         print("Connection Error")
 
     print("Connection started")
+    return connection
+
+def innit():
+    connection = connect()
     cursor = connection.cursor()
-    
+
     create = (
         """
         CREATE TABLE IF NOT EXISTS product (
