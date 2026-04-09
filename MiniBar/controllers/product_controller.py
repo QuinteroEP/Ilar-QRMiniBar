@@ -4,18 +4,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+from db import database
 
 router = APIRouter()
 
-dbpass = os.getenv("ILAR_PASS") 
-
-try:
-    connection = psycopg2.connect(database="ilar", user="postgres", password=dbpass, host="localhost", port=5432)
-except:
-    print("Connection Error")
+connection = database.connect()
 
 cursor = connection.cursor()
-    
+
 @router.get("/products")
 def get_all_products():
     get_all_query = """

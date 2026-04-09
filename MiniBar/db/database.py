@@ -34,6 +34,14 @@ def innit():
             room_number SERIAL PRIMARY KEY, 
             id INTEGER
         )
+        """,
+
+        """
+        CREATE TABLE IF NOT EXISTS room_order (
+            id SERIAL PRIMARY KEY, 
+            cost FLOAT NOT NULL,
+            items_id INTEGER[] NOT NULL
+        )
         """
         )
     
