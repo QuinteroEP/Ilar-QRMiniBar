@@ -14,4 +14,4 @@ class Bar_Order(Base):
 
         id: Mapped[int] = mapped_column(primary_key=True)
         room_id: Mapped[int] = mapped_column(ForeignKey("room.id"))
-        cost = Mapped[Float]
+        cost: Mapped[float]

@@ -38,10 +38,12 @@ def post_products(name: str, price: float, inventory: int, db: Session = Depends
 
 @router.put("/products/update/{product_id}")
 def update_product(name: str, price: float, inventory: int, id: float, db: Session = Depends(connect)):
-   updated_product = db.query(Product).filter(Product.id == id).first()    
+   updated_product = db.query(Product).filter(Product.id == id).first()
+
    setattr(updated_product, "name", name)
    setattr(updated_product, "price", price)
    setattr(updated_product, "inventory", inventory)
+   
    db.commit()
    db.refresh(updated_product)
    return api_response(data=updated_product, message="Updated product")
