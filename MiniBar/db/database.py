@@ -1,53 +1,22 @@
-import os
-import psycopg2
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
+
+load_dotenv()
+
+dbpass = os.getenv("ILAR_PASS")
+
+DATABASE_URL = f"postgresql://postgres:{dbpass}@localhost:5432/ilar"
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+Base = declarative_base()
 
 def connect():
-    dbpass = os.getenv("ILAR_PASS") 
-
+    db = SessionLocal()
     try:
-        connection = psycopg2.connect(database="ilar", user="postgres", password=dbpass, host="localhost", port=5432)
-    except:
-        print("Connection Error")
-
-    print("Connection started")
-    return connection
-
-def innit():
-    connection = connect()
-    cursor = connection.cursor()
-
-    create = (
-        """
-        CREATE TABLE IF NOT EXISTS product (
-            id SERIAL PRIMARY KEY, 
-            name TEXT NOT NULL, 
-            inventory INTEGER,
-            price FLOAT NOT NULL
-        )
-        """,
-
-        """
-        CREATE TABLE IF NOT EXISTS customer (
-            room_number SERIAL PRIMARY KEY, 
-            id INTEGER
-        )
-        """,
-
-        """
-        CREATE TABLE IF NOT EXISTS room_order (
-            id SERIAL PRIMARY KEY, 
-            cost FLOAT NOT NULL,
-            items_id INTEGER[] NOT NULL
-        )
-        """
-        )
-    
-    for command in create:
-        cursor.execute(command)
-
-    connection.commit()
-    
-    print("Tables created")
+        yield db
+    finally:
+        db.close()

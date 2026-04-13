@@ -3,6 +3,7 @@ from controllers.product_controller import router as products_router
 from controllers.order_controller import router as orders_router
 from controllers.customer_controller import router as customers_router
 from db import database
+from models import ORM
 
 app = FastAPI()
 
@@ -12,7 +13,7 @@ app.include_router(customers_router, prefix="/api", tags=["Customers"])
 
 @app.on_event("startup")
 def on_startup():
-    database.innit()
+    ORM.orm()
 
 @app.get("/")
 def root():
