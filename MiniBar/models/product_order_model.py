@@ -15,3 +15,4 @@ class ProductOrder(Base):
         id: Mapped[int] = mapped_column(primary_key=True)
         id_product: Mapped[int] = mapped_column(ForeignKey("product.id"))
         id_order: Mapped[int] = mapped_column(ForeignKey("bar_order.id"))
+        quantity: Mapped[int]
