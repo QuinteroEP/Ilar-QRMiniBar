@@ -1,3 +1,26 @@
+Este proyecto es un prototipo para un sistema que le permita a los huespedes de un hotel ordenar comida del minibar por medio de un codigo QR.
+
+El proyecto tiene una arquitectura de monolito y sigue el patron MVC
+
+# Directorio
+## Controllers
+Controladores para cada entidad de la base de datos
+
+## db
+Conexion a la base de datos
+
+## models
+ORM de cada entidad de la base de datos
+
+## utils
+Wrapper para las respuestas del API
+
+# Tecnologias
+## Backend
+1. Python
+2. FastAPI
+3. PostgreSQL
+
 # Ejecucion
 Para ejecutar el sistema se debe crear un entorno virtual
 
@@ -6,8 +29,6 @@ Para ejecutar el sistema se debe crear un entorno virtual
 3. Instalar las dependencias con *pip install -r requirements.txt*
 4. Ejecutar la aplicacion con *uvicorn main:app --reload*
 
-# Tecnologias
-## Backend
-1. Python
-2. FastAppi
-3. PostgreSQL
+# Creditos
+Pablo Enrique Quintero (Backend)
+Juan Diego Arias (Frontend)
