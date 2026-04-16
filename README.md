@@ -16,6 +16,9 @@ ORM de cada entidad de la base de datos
 Wrapper para las respuestas del API
 
 # Tecnologias
+## Frontend
+1. NextJS
+
 ## Backend
 1. Python
 2. FastAPI
@@ -31,4 +34,5 @@ Para ejecutar el sistema se debe crear un entorno virtual
 
 # Creditos
 Pablo Enrique Quintero (Backend)
+
 Juan Diego Arias (Frontend)
