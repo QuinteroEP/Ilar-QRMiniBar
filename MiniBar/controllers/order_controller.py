@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from utils.response_wrapper import api_response
 from sqlalchemy.orm import sessionmaker
 from models.product_model import Product
-from models.bar_oder_model import Bar_Order
+from models.bar_order_model import Bar_Order
 from models.product_order_model import ProductOrder
 from db import database
 
@@ -32,21 +32,22 @@ def get_order_by_id(id: float, db: Session = Depends(connect)):
     return api_response(data=orders, message="Order found")
  
 @router.post("/orders/add/")
-def post_orders(room_id: float, products_id: list[float], amounts: list[int], db: Session = Depends(connect)):
+def post_orders(room_id: float, product_id: float, amount: int, db: Session = Depends(connect)):
     total_cost = 0
-    new_order = Bar_Order(room_id=room_id, cost=0)
+    room_order = db.query(Bar_Order).filter(Bar_Order.id == id).first()
+    
+    if(room_order is None):
+        room_order = Bar_Order(room_id=room_id, cost=0)
 
-    session.add(new_order)
-    session.commit()
-
-    for item, quantity in zip(products_id, amounts):
-        session.add(ProductOrder(id_product=item, id_order=new_order.id, quantity = quantity))
-        total_cost += + db.query(Product.price).filter(Product.id == item).scalar() * quantity
-
-    setattr(new_order, "cost", total_cost)
+    session.add(room_order)
     session.commit()
     
-    return api_response(data=new_order, message="New order generated")
+    total_cost += + db.query(Product.price).filter(Product.id == product_id).first() * amount
+
+    setattr(room_order, "cost", total_cost)
+    session.commit()
+    
+    return api_response(data=room_order, message="New order generated")
 
 @router.put("/orders/update/{order_id}")
 def put_order(id: float, room_id: float, products_id: list[float], amounts: list[int], db: Session = Depends(connect)):
