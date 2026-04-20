@@ -5,8 +5,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useProductStore } from "@/store/useProductStore"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -15,8 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import s from "./page.module.css"
 
-// 1. Esquema de validación con Zod
 const schema = z.object({
   name:      z.string().min(1, "El nombre es requerido"),
   price:     z.coerce.number().positive("Debe ser mayor a 0"),
@@ -25,10 +23,8 @@ const schema = z.object({
 type ProductForm = z.infer<typeof schema>
 
 export default function ProductsPage() {
-  // 2. Zustand — estado global
-  const { products, loading, fetchProducts, addProduct, deleteProduct } = useProductStore()
+  const { products, loading, error, fetchProducts, addProduct, deleteProduct } = useProductStore()
 
-  // 3. React Hook Form + Zod
   const {
     register,
     handleSubmit,
@@ -39,86 +35,146 @@ export default function ProductsPage() {
     defaultValues: { name: "", price: 0, inventory: 0 },
   })
 
-  // Carga los productos al entrar a la página
   useEffect(() => {
     fetchProducts()
   }, [])
 
-  // 4. Submit — Axios llama al backend desde el store
   const onSubmit = async (data: ProductForm) => {
     await addProduct(data)
     reset()
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-8 space-y-8">
-      <h1 className="text-3xl font-bold">Productos del MiniBar</h1>
+    <div className={s.page}>
 
-      {/* Formulario */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 border rounded-lg p-6">
-        <h2 className="text-lg font-semibold">Agregar producto</h2>
+      {/* Header */}
+      <header className={s.header}>
+        <div className={s.headerInner}>
+          <div className={s.headerAccent} />
+          <span className={s.headerBrand}>Ilar Hotel</span>
+          <span className={s.headerDot}>·</span>
+          <span className={s.headerSection}>Gestión de MiniBar</span>
+        </div>
+      </header>
 
-        <div className="space-y-1">
-          <Input placeholder="Nombre" {...register("name")} />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+      <main className={s.main}>
+
+        {/* Título */}
+        <div className={s.titleBlock}>
+          <h1 className={s.title}>Productos</h1>
+          <p className={s.subtitle}>Administra el inventario del minibar</p>
         </div>
 
-        <div className="space-y-1">
-          <Input placeholder="Precio" type="number" step="0.01" {...register("price")} />
-          {errors.price && <p className="text-red-500 text-sm">{errors.price.message}</p>}
+        {/* Formulario */}
+        <div className={s.card}>
+          <div className={s.cardHeader}>
+            <div className={s.cardHeaderLeft}>
+              <div className={s.cardDot} />
+              <h2 className={s.cardTitle}>Agregar producto</h2>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className={s.formBody}>
+            <div className={s.formGrid}>
+
+              <div className={s.fieldGroup}>
+                <label className={s.label}>Nombre</label>
+                <input className={s.input} placeholder="Ej: Coca Cola" {...register("name")} />
+                {errors.name && <p className={s.fieldError}>{errors.name.message}</p>}
+              </div>
+
+              <div className={s.fieldGroup}>
+                <label className={s.label}>Precio (S/.)</label>
+                <input className={s.input} type="number" step="0.01" placeholder="0.00" {...register("price")} />
+                {errors.price && <p className={s.fieldError}>{errors.price.message}</p>}
+              </div>
+
+              <div className={s.fieldGroup}>
+                <label className={s.label}>Inventario</label>
+                <input className={s.input} type="number" placeholder="0" {...register("inventory")} />
+                {errors.inventory && <p className={s.fieldError}>{errors.inventory.message}</p>}
+              </div>
+
+            </div>
+
+            <div className={s.formFooter}>
+              <button type="submit" disabled={isSubmitting} className={s.btnPrimary}>
+                {isSubmitting ? "Guardando..." : "Agregar producto"}
+              </button>
+            </div>
+          </form>
         </div>
 
-        <div className="space-y-1">
-          <Input placeholder="Inventario" type="number" {...register("inventory")} />
-          {errors.inventory && <p className="text-red-500 text-sm">{errors.inventory.message}</p>}
-        </div>
+        {/* Error */}
+        {error && <div className={s.errorBanner}>{error}</div>}
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Guardando..." : "Agregar"}
-        </Button>
-      </form>
-
-      {/* Tabla de productos */}
-      {loading ? (
-        <p className="text-muted-foreground">Cargando productos...</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Precio</TableHead>
-              <TableHead>Inventario</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  No hay productos
-                </TableCell>
-              </TableRow>
-            ) : (
-              products.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{p.name}</TableCell>
-                  <TableCell>${p.price}</TableCell>
-                  <TableCell>{p.inventory}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteProduct(p.id)}
-                    >
-                      Eliminar
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+        {/* Tabla */}
+        <div className={s.card}>
+          <div className={s.cardHeader}>
+            <div className={s.cardHeaderLeft}>
+              <div className={s.cardDot} />
+              <h2 className={s.cardTitle}>Inventario actual</h2>
+            </div>
+            {!loading && (
+              <span className={s.cardCount}>
+                {products.length} {products.length === 1 ? "producto" : "productos"}
+              </span>
             )}
-          </TableBody>
-        </Table>
-      )}
+          </div>
+
+          {loading ? (
+            <div className={s.loading}>
+              <span className={s.dot} />
+              <span className={s.dot} />
+              <span className={s.dot} />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className={s.tableRow}>
+                  <TableHead className={s.tableHead}>Nombre</TableHead>
+                  <TableHead className={s.tableHead}>Precio</TableHead>
+                  <TableHead className={s.tableHead}>Inventario</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.length === 0 ? (
+                  <TableRow className={s.tableRow}>
+                    <TableCell colSpan={4} className={s.emptyCell}>
+                      No hay productos registrados
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  products.map((p) => (
+                    <TableRow key={p.id} className={s.tableRow}>
+                      <TableCell className={s.cellName}>{p.name}</TableCell>
+                      <TableCell className={s.cellPrice}>
+                        S/. {Number(p.price).toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`${s.badge} ${
+                          p.inventory > 10 ? s.badgeGreen :
+                          p.inventory > 0  ? s.badgeAmber :
+                          s.badgeRed
+                        }`}>
+                          {p.inventory} uds
+                        </span>
+                      </TableCell>
+                      <TableCell style={{ textAlign: "right" }}>
+                        <button className={s.btnDelete} onClick={() => deleteProduct(p.id)}>
+                          Eliminar
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+
+      </main>
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { api } from "@/lib/api"
 
 export type Product = {
   id: number
@@ -7,43 +8,39 @@ export type Product = {
   inventory: number
 }
 
-const MOCK_PRODUCTS: Product[] = [
-  { id: 1, name: "Agua mineral",   price: 2.50, inventory: 20 },
-  { id: 2, name: "Coca Cola",      price: 3.00, inventory: 15 },
-  { id: 3, name: "Cerveza Pilsen", price: 4.50, inventory: 10 },
-  { id: 4, name: "Papas fritas",   price: 2.00, inventory: 8  },
-]
-
 type ProductStore = {
   products: Product[]
   loading: boolean
+  error: string | null
   fetchProducts: () => Promise<void>
-  deleteProduct: (id: number) => Promise<void>
   addProduct: (data: Omit<Product, "id">) => Promise<void>
+  deleteProduct: (id: number) => Promise<void>
 }
 
 export const useProductStore = create<ProductStore>((set, get) => ({
   products: [],
   loading: false,
+  error: null,
 
   fetchProducts: async () => {
-    set({ loading: true })
-    // Simula un pequeño delay de red
-    await new Promise((r) => setTimeout(r, 500))
-    set({ products: MOCK_PRODUCTS, loading: false })
+    set({ loading: true, error: null })
+    try {
+      const res = await api.get("/products")
+      set({ products: res.data.data, loading: false })
+    } catch {
+      set({ loading: false, error: "No se pudieron cargar los productos. ¿El backend está corriendo?" })
+    }
   },
 
   addProduct: async (data) => {
-    await new Promise((r) => setTimeout(r, 300))
-    const newProduct: Product = {
-      id: Date.now(),
-      ...data,
-    }
-    set((state) => ({ products: [...state.products, newProduct] }))
+    await api.post("/products/add/", null, {
+      params: { name: data.name, price: data.price, inventory: data.inventory },
+    })
+    await get().fetchProducts()
   },
 
   deleteProduct: async (id) => {
-    await new Promise((r) => setTimeout(r, 300))
+    await api.delete(`/products/delete/{product_id}?id=${id}`)
     set((state) => ({
       products: state.products.filter((p) => p.id !== id),
     }))
