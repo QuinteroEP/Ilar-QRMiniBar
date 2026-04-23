@@ -1,8 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
-import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import os
 from db.database import connect
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -23,11 +21,15 @@ session = Session()
 @router.get("/rooms")
 def get_all_rooms(db: Session = Depends(connect)):
     rooms = session.query(Room).all()
+    if rooms is None:
+        return api_response(data=None, message="No rooms registered", error=404)
     return api_response(data=rooms, message="All rooms retreived")
 
 @router.get("/rooms/")
 def get_room_by_id(id:float, db: Session = Depends(connect)):
     room = db.query(Room).filter(Room.id == id).first()
+    if room is None:
+        return api_response(data=None, message="No room found", error=404)
     return api_response(data=room, message="Room found")
 
 @router.post("/rooms")
@@ -43,6 +45,8 @@ def post_rooms(room: RoomSchema, db: Session = Depends(connect)):
 @router.put("/rooms/")
 def put_room(id:float, room: RoomSchema, db: Session = Depends(connect)):
     updated_room = db.query(Room).filter(Room.id == id).first()
+    if updated_room is None:
+        return api_response(data=None, message="Room not found", error=404)
     
     setattr(updated_room, "number", room.number)
     
@@ -55,7 +59,7 @@ def delete_room(id: float, db: Session = Depends(connect)):
     room = db.query(Room).filter(Room.id == id).first()
 
     if room is None:
-        return None
+        return api_response(data=None, message="Room not found", error=404)
     
     db.delete(room)
     db.commit()

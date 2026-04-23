@@ -1,8 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
-import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import os
 from db.database import connect
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -22,14 +20,18 @@ Session = sessionmaker(bind=engine)
 @router.get("/products")
 def get_all_products(db: Session = Depends(connect)):
     products = db.query(Product).all()
+    if products is None:
+        return api_response(data=None, message="No products available", error=404)
     return api_response(data=products, message="All products retreived")
 
 @router.get("/products/")
 def get_product_by_id(id: float, db: Session = Depends(connect)):
     product = db.query(Product).filter(Product.id == id).first()
+    if product is None:
+        return api_response(data=None, message="Product not found", error=404)
     return api_response(data=product, message="Product found")
 
-@router.post("/products/")
+@router.post("/products")
 def post_products(product: ProductSchema, db: Session = Depends(connect)):
     new_product = Product(
         name=product.name,
@@ -43,9 +45,11 @@ def post_products(product: ProductSchema, db: Session = Depends(connect)):
 
     return api_response(data=new_product, message="New product added")
 
-@router.put("/products")
+@router.put("/products/")
 def update_product(product: ProductSchema, id: float, db: Session = Depends(connect)):
    updated_product = db.query(Product).filter(Product.id == id).first()
+   if updated_product is None:
+        return api_response(data=None, message="Product not found", error=404)
 
    setattr(updated_product, "name", product.name)
    setattr(updated_product, "price", product.price)
@@ -60,7 +64,7 @@ def delete_product(id: float, db: Session = Depends(connect)):
     product = db.query(Product).filter(Product.id == id).first()
 
     if product is None:
-        return None
+        return api_response(data=None, message="Product not found", error=404)
     
     db.delete(product)
     db.commit()
