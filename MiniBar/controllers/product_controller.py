@@ -43,7 +43,7 @@ def post_products(product: ProductSchema, db: Session = Depends(connect)):
 
     return api_response(data=new_product, message="New product added")
 
-@router.put("/products/")
+@router.put("/products")
 def update_product(product: ProductSchema, id: float, db: Session = Depends(connect)):
    updated_product = db.query(Product).filter(Product.id == id).first()
 
