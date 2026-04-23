@@ -24,4 +24,4 @@ def on_startup():
 
 @app.get("/")
 def root():
-    return {"root"}
+    return {"Backend Running"}

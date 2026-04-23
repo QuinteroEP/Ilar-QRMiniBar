@@ -1,8 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
-import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import os
 from db.database import connect
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -11,49 +9,62 @@ from utils.response_wrapper import api_response
 from sqlalchemy.orm import sessionmaker
 from models.product_model import Product
 from db import database
+from schemas.product_schema import ProductSchema
 
 router = APIRouter()
 
 engine = create_engine(database.DATABASE_URL)
 
 Session = sessionmaker(bind=engine)
-session = Session()
 
 @router.get("/products")
 def get_all_products(db: Session = Depends(connect)):
-    products = session.query(Product).all()
+    products = db.query(Product).all()
+    if products is None:
+        return api_response(data=None, message="No products available", error=404)
     return api_response(data=products, message="All products retreived")
 
-@router.get("/products/{product_id}")
+@router.get("/products/")
 def get_product_by_id(id: float, db: Session = Depends(connect)):
     product = db.query(Product).filter(Product.id == id).first()
+    if product is None:
+        return api_response(data=None, message="Product not found", error=404)
     return api_response(data=product, message="Product found")
 
-@router.post("/products/add/")
-def post_products(name: str, price: float, inventory: int, db: Session = Depends(connect)):
-    new_product = Product(name=name, price=price, inventory=inventory)
-    session.add(new_product)
-    session.commit()
+@router.post("/products")
+def post_products(product: ProductSchema, db: Session = Depends(connect)):
+    new_product = Product(
+        name=product.name,
+        price=product.price,
+        inventory=product.inventory
+    )
+
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+
     return api_response(data=new_product, message="New product added")
 
-@router.put("/products/update/{product_id}")
-def update_product(name: str, price: float, inventory: int, id: float, db: Session = Depends(connect)):
+@router.put("/products/")
+def update_product(product: ProductSchema, id: float, db: Session = Depends(connect)):
    updated_product = db.query(Product).filter(Product.id == id).first()
+   if updated_product is None:
+        return api_response(data=None, message="Product not found", error=404)
 
-   setattr(updated_product, "name", name)
-   setattr(updated_product, "price", price)
-   setattr(updated_product, "inventory", inventory)
+   setattr(updated_product, "name", product.name)
+   setattr(updated_product, "price", product.price)
+   setattr(updated_product, "inventory", product.inventory)
    
    db.commit()
    db.refresh(updated_product)
    return api_response(data=updated_product, message="Updated product")
 
-@router.delete("/products/delete/{product_id}")
+@router.delete("/products/")
 def delete_product(id: float, db: Session = Depends(connect)):
     product = db.query(Product).filter(Product.id == id).first()
 
     if product is None:
-        return None
+        return api_response(data=None, message="Product not found", error=404)
     
     db.delete(product)
     db.commit()
