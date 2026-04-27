@@ -1,0 +1,140 @@
+.page {
+  min-height: 100svh;
+  background: #1A1714;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(184, 153, 106, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.content {
+  text-align: center;
+  max-width: 280px;
+  position: relative;
+  animation: rise 0.7s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Icon ── */
+
+.iconWrap {
+  margin: 0 auto 2.5rem;
+  width: 80px;
+  height: 80px;
+}
+
+.checkSvg {
+  width: 80px;
+  height: 80px;
+  overflow: visible;
+}
+
+.ring {
+  stroke-dasharray: 188;
+  stroke-dashoffset: 188;
+  animation: drawRing 0.8s ease forwards 0.2s;
+  transform-origin: center;
+  transform: rotate(-90deg);
+}
+
+.check {
+  stroke-dasharray: 38;
+  stroke-dashoffset: 38;
+  animation: drawCheck 0.4s ease forwards 0.9s;
+}
+
+@keyframes drawRing {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes drawCheck {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ── Text ── */
+
+.hotelLabel {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: #B8996A;
+  margin-bottom: 1.25rem;
+  animation: fadeIn 0.5s ease both 0.4s;
+}
+
+.ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 80px;
+  margin: 0 auto 1.5rem;
+  animation: fadeIn 0.5s ease both 0.5s;
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background: rgba(184, 153, 106, 0.35);
+}
+
+.diamond {
+  font-size: 5px;
+  color: rgba(184, 153, 106, 0.6);
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 3rem;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: #F5F0E8;
+  line-height: 1.15;
+  margin-bottom: 1.75rem;
+  animation: fadeIn 0.5s ease both 0.5s;
+}
+
+.message {
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: #5C5249;
+  line-height: 1.8;
+  animation: fadeIn 0.5s ease both 0.7s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

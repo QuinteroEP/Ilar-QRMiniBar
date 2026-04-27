@@ -40,6 +40,8 @@ Las tablas se crean automáticamente al iniciar vía `models/ORM.py → orm()` l
 - `product-order` — id, id_product (FK→product), id_order (FK→bar_order), quantity
 - `reservation` — id (placeholder, sin campos útiles aún)
 
+**Deploy:** Backend corriendo en Vercel. `app.py` es el entry point (con CORS `allow_origins=["*"]`). `MiniBar/api/index.py` es el handler que Vercel invoca.
+
 **Endpoints implementados (`/api`):**
 
 | Método | Ruta | Estado |
@@ -102,7 +104,16 @@ npm run dev
 - `store/useProductStore.ts` — Zustand store con fetch, add y delete de productos
 - `app/products/page.tsx` — página de productos con formulario y tabla
 
-**Estado actual:** El store usa **datos mock** (sin conexión real al backend). Para conectar: reemplazar las funciones en `store/useProductStore.ts` para usar `api` de `lib/api.ts`.
+**Estado actual:** El store **ya está conectado al backend real** vía Axios. `NEXT_PUBLIC_API_URL` configura la URL base (ej. Vercel URL del backend).
+
+**Archivos adicionales:**
+- `app/orders/page.tsx` — plantilla de órdenes (fetch + tabla + formulario básico)
+- `store/useOrderStore.ts` — Zustand store con fetch, add y delete de órdenes
+- `app/products/page.module.css` — estilos extraídos a CSS module (estética hotel boutique)
+
+**Bug activo en el frontend:**
+- `deleteProduct` en `useProductStore.ts` usa URL literal errónea: `/products/delete/{product_id}?id=${id}` → debe ser `/products/delete/${id}` (y depende de que el backend corrija el path param bug)
+- `addOrder` en `useOrderStore.ts` envía arrays vacíos (`products_id: [], amounts: []`) — es placeholder, no funcional aún
 
 ---
 
@@ -125,12 +136,45 @@ npm run dev
 - Configuración de DB por variables de entorno (preparado para deploy)
 - Agregado `vercel.json` para deploy del backend
 
+### Sesión 3 (QuinteroEP — v1 a v1.1.1, 20 abril 2026)
+- **v1**: Base de datos finalizada, CRUDs terminados en todos los controllers
+- **v1.0.1–v1.0.4**: Iteraciones de configuración `vercel.json` y reorganización de archivos para Vercel (`MiniBar/api/index.py`)
+- **v1.1**: Creación de `app.py` como entry point FastAPI para Vercel; limpieza de `api/index.py` y `db/database.py`
+- **v1.1.1**: CORS configurado en `app.py` con `allow_origins=["*"]` — desbloqueó peticiones desde el frontend
+
+### Sesión 4 (ElAreaAl2 — 7ff58c3, 20 abril 2026)
+- Conexión real del frontend al backend: `useProductStore.ts` reemplaza mock data por llamadas Axios
+- `lib/api.ts`: URL base por variable de entorno `NEXT_PUBLIC_API_URL`
+- Rediseño de `products/page.tsx` con estética hotel boutique y estilos extraídos a `page.module.css`
+- Plantilla de órdenes: `app/orders/page.tsx` + `store/useOrderStore.ts`
+
+### Sesión 5 (ElAreaAl2 — interfaz cliente)
+- `app/page.tsx`: interfaz del cliente — menú de productos con carrito y envío de pedido
+- `app/page.module.css`: estética hotel boutique (fondo crema `#F5F0E8`, header espresso, oro `#B8996A`, Cormorant Garamond serif)
+- `store/useCartStore.ts`: Zustand store para el carrito (add, increment, decrement, submitOrder)
+- `app/confirmation/page.tsx` + `page.module.css`: pantalla de confirmación con animación SVG del checkmark
+- El QR debe apuntar a `/?room=<número>` — el room_id se lee via `useSearchParams()`
+- `submitOrder` en useCartStore serializa arrays con `URLSearchParams` para compatibilidad con FastAPI
+
 ---
 
 ## Pendientes
 
+### Backend
 - [ ] Corregir bug de path params en los 3 controllers (renombrar `id` → `product_id`, `order_id`, `room_id`)
 - [ ] Unificar las dos sesiones — eliminar `session` global y usar solo `db` de `Depends`
-- [ ] Reemplazar mock data por llamadas reales en `store/useProductStore.ts`
 - [ ] Completar `reservation_model.py` (agregar campos) y crear su controller
 - [ ] Cambiar POST endpoints para recibir body Pydantic en vez de query params
+
+### Frontend
+- [ ] Corregir URL en `deleteProduct` (`useProductStore.ts`): `/products/delete/{product_id}?id=${id}` → `/products/delete/${id}`
+- [ ] Implementar `addOrder` real en `useOrderStore.ts` (actualmente envía arrays vacíos)
+- [ ] Implementar página del encargado del minibar (`/orders`) — ver pedidos + botón despachar
+- [ ] Implementar store y página para habitaciones (`/rooms`)
+
+### Resuelto
+- [x] Interfaz cliente completa: menú → carrito → confirmación (Sesión 5)
+- [x] Mock data reemplazado por llamadas reales al backend (Sesión 4)
+- [x] CORS configurado en el backend (QuinteroEP v1.1.1)
+- [x] Backend deployado en Vercel (QuinteroEP v1.1)
+- [x] URL base configurable por variable de entorno `NEXT_PUBLIC_API_URL`
