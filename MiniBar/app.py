@@ -1,11 +1,25 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from controllers.product_controller import router as products_router
 from controllers.order_controller import router as orders_router
 from controllers.room_controller import router as room_router
 from models import ORM
+from utils.response_wrapper import api_response
 
 app = FastAPI()
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=400,
+        content=api_response(
+            data=None,
+            message="Invalid request body",
+            error=400
+        )
+    )
 
 app.add_middleware(
     CORSMiddleware,
