@@ -1,11 +1,11 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Cormorant_Garamond } from "next/font/google"
 import { useProductStore } from "@/store/useProductStore"
-import { useCartStore } from "@/store/useCartStore"
 import styles from "./page.module.css"
+import { useSearchParams } from "next/navigation"
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -13,141 +13,151 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
 })
 
-function MenuPage() {
-  const searchParams = useSearchParams()
-  const roomId = searchParams.get("room") ?? "—"
+export default function Home() {
   const router = useRouter()
-  const [submitting, setSubmitting] = useState(false)
+  const { products, fetchProducts } = useProductStore()
+  const [showRoomModal, setShowRoomModal] = useState(false)
+  const [roomInput, setRoomInput] = useState("")
+  const [roomError, setRoomError] = useState("")
+  const searchParams = useSearchParams()
 
-  const { products, loading, error, fetchProducts } = useProductStore()
-  const { items, add, increment, decrement, count, total, submitOrder } = useCartStore()
+  useEffect(() => { fetchProducts() }, [fetchProducts])
 
+  // If there's a ?room= query param, prefill the input and open the modal
   useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
-
-  const getQty = (id: number) => items.find((i) => i.product.id === id)?.quantity ?? 0
-
-  const handleSubmit = async () => {
-    const roomNum = parseInt(roomId)
-    if (isNaN(roomNum) || submitting) return
-    setSubmitting(true)
-    try {
-      await submitOrder(roomNum)
-      router.push("/confirmation")
-    } catch {
-      setSubmitting(false)
+    const roomQuery = searchParams?.get("room")
+    if (roomQuery) {
+      setRoomInput(roomQuery)
+      setRoomError("")
+      setShowRoomModal(true)
+      if (roomQuery.trim() && !isNaN(parseInt(roomQuery)) && parseInt(roomQuery) > 0) {
+        router.push(`/menu?room=${roomQuery.trim()}`)
+      } else {
+        setRoomError("El número de habitación en la URL no es válido.")
+      }
     }
+  }, [searchParams])
+
+  const featured = products.slice(0, 4)
+
+  
+
+  const handleOrder = () => {
+    const num = parseInt(roomInput.trim())
+    if (!roomInput.trim() || isNaN(num) || num <= 0) {
+      setRoomError("Ingresa un número de habitación válido.")
+      return
+    }
+    router.push(`/menu?room=${num}`)
   }
 
-  const totalItems = count()
-  const totalPrice = total()
+  const openModal = () => {
+    setRoomInput("")
+    setRoomError("")
+    setShowRoomModal(true)
+  }
 
   return (
     <div className={`${styles.page} ${cormorant.variable}`}>
-      <header className={styles.header}>
+
+      {/* Hero */}
+      <header className={styles.hero}>
         <p className={styles.hotelLabel}>Hotel Ilar</p>
         <div className={styles.ornament}>
           <span className={styles.ornamentLine} />
           <span className={styles.ornamentDiamond}>◆</span>
           <span className={styles.ornamentLine} />
         </div>
-        <h1 className={styles.title}>Mini Bar</h1>
-        <p className={styles.roomLabel}>Habitación&nbsp;{roomId}</p>
+        <h1 className={styles.heroTitle}>Mini Bar</h1>
+        <p className={styles.heroSub}>
+          Una selección curada para su comodidad
+        </p>
       </header>
 
       <main className={styles.main}>
-        {loading && (
-          <div className={styles.state}>
-            <p className={styles.stateText}>Cargando menú…</p>
-          </div>
-        )}
-        {error && (
-          <div className={styles.state}>
-            <p className={styles.stateError}>{error}</p>
-          </div>
+
+        {/* Welcome text */}
+        <section className={styles.welcome}>
+          <h2 className={styles.welcomeTitle}>Bienvenido</h2>
+          <p className={styles.welcomeText}>
+            Disfrute desde la comodidad de su habitación nuestra selección
+            de bebidas, snacks y productos de temporada, disponibles las
+            24 horas del día.
+          </p>
+        </section>
+
+        {/* Featured products */}
+        {featured.length > 0 && (
+          <section className={styles.featured}>
+            <p className={styles.sectionLabel}>Destacados</p>
+            <ul className={styles.featuredGrid}>
+              {featured.map((p, idx) => (
+                <li
+                  key={p.id}
+                  className={styles.featuredCard}
+                  style={{ animationDelay: `${idx * 70}ms` }}
+                >
+                  <span className={styles.featuredName}>{p.name}</span>
+                  <span className={styles.featuredPrice}>
+                    ${p.price.toLocaleString("es-CO")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
-        {!loading && !error && products.length > 0 && (
-          <>
-            <p className={styles.sectionLabel}>Selección del día</p>
-            <ul className={styles.list}>
-              {products.map((product, idx) => {
-                const qty = getQty(product.id)
-                return (
-                  <li
-                    key={product.id}
-                    className={styles.item}
-                    style={{ animationDelay: `${idx * 55}ms` }}
-                  >
-                    <div className={styles.itemInfo}>
-                      <span className={styles.itemName}>{product.name}</span>
-                      <span className={styles.itemPrice}>
-                        ${product.price.toLocaleString("es-CO")}
-                      </span>
-                    </div>
-                    <div className={styles.itemControls}>
-                      {qty === 0 ? (
-                        <button
-                          className={styles.addBtn}
-                          onClick={() => add(product)}
-                          aria-label={`Agregar ${product.name}`}
-                        >
-                          +
-                        </button>
-                      ) : (
-                        <div className={styles.counter}>
-                          <button
-                            className={styles.cBtn}
-                            onClick={() => decrement(product.id)}
-                            aria-label="Quitar uno"
-                          >
-                            −
-                          </button>
-                          <span className={styles.cVal}>{qty}</span>
-                          <button
-                            className={styles.cBtn}
-                            onClick={() => increment(product.id)}
-                            aria-label="Agregar uno más"
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          </>
-        )}
+        {/* CTA */}
+        <section className={styles.cta}>
+          <div className={styles.ctaDivider} />
+          <p className={styles.ctaHint}>
+            Para realizar un pedido ingrese el número de su habitación
+          </p>
+          <button className={styles.ctaBtn} onClick={openModal}>
+            ¿Desea hacer un pedido?
+          </button>
+        </section>
+
       </main>
 
-      <div className={`${styles.cartBar} ${totalItems > 0 ? styles.cartVisible : ""}`}>
-        <div className={styles.cartMeta}>
-          <span className={styles.cartItems}>
-            {totalItems}&nbsp;{totalItems === 1 ? "artículo" : "artículos"}
-          </span>
-          <span className={styles.cartTotal}>
-            ${totalPrice.toLocaleString("es-CO")}
-          </span>
-        </div>
-        <button
-          className={styles.sendBtn}
-          onClick={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? "Enviando…" : "Enviar pedido"}
-        </button>
-      </div>
-    </div>
-  )
-}
+      {/* Room number modal */}
+      {showRoomModal && (
+        <div className={styles.overlay} onClick={() => setShowRoomModal(false)}>
+          <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.sheetHandle} />
 
-export default function Home() {
-  return (
-    <Suspense>
-      <MenuPage />
-    </Suspense>
+            <p className={styles.sheetLabel}>Nuevo pedido</p>
+            <h2 className={styles.sheetTitle}>¿Cuál es su<br />habitación?</h2>
+
+            <input
+              className={`${styles.roomInput} ${roomError ? styles.roomInputError : ""}`}
+              type="number"
+              inputMode="numeric"
+              placeholder="Ej: 205"
+              value={roomInput}
+              onChange={(e) => {
+                setRoomInput(e.target.value)
+                setRoomError("")
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleOrder()}
+              autoFocus
+            />
+            {roomError && <p className={styles.inputError}>{roomError}</p>}
+
+            <div className={styles.sheetActions}>
+              <button
+                className={styles.cancelBtn}
+                onClick={() => setShowRoomModal(false)}
+              >
+                Cancelar
+              </button>
+              <button className={styles.confirmBtn} onClick={handleOrder}>
+                Ver el menú →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

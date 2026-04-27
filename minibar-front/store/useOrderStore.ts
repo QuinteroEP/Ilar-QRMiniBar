@@ -1,10 +1,19 @@
 import { create } from "zustand"
 import { api } from "@/lib/api"
 
+export type ProductOrder = {
+  id: number
+  id_product: number
+  product_name: string
+  product_price: number
+  product_quantity: number
+}
+
 export type Order = {
   id: number
   room_id: number
   cost: number
+  productOrders?: ProductOrder[]
 }
 
 type OrderStore = {
@@ -12,8 +21,7 @@ type OrderStore = {
   loading: boolean
   error: string | null
   fetchOrders: () => Promise<void>
-  deleteOrder: (id: number) => Promise<void>
-  addOrder: (data: Omit<Order, "id" | "cost">) => Promise<void>
+  dispatchOrder: (id: number) => Promise<void>
 }
 
 export const useOrderStore = create<OrderStore>((set) => ({
@@ -25,23 +33,18 @@ export const useOrderStore = create<OrderStore>((set) => ({
     set({ loading: true, error: null })
     try {
       const res = await api.get("/orders")
-      set({ orders: res.data.data, loading: false })
+      set({ orders: res.data.data ?? [], loading: false })
     } catch {
-      set({ loading: false, error: "No se pudieron cargar las órdenes." })
+      set({ loading: false, error: "No se pudieron cargar los pedidos." })
     }
   },
 
-  addOrder: async (data) => {
-    const res = await api.post("/orders/add/", null, {
-      params: { room_id: data.room_id, products_id: [], amounts: [] },
-    })
-    set((state) => ({ orders: [...state.orders, res.data.data] }))
-  },
-
-  deleteOrder: async (id) => {
-    await api.delete(`/orders/delete/${id}`)
-    set((state) => ({
-      orders: state.orders.filter((o) => o.id !== id),
-    }))
+  dispatchOrder: async (id) => {
+    set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }))
+    try {
+      await api.delete("/orders/", { params: { id } })
+    } catch {
+      // optimistic — backend confirms later
+    }
   },
 }))

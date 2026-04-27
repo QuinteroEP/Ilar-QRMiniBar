@@ -1,93 +1,119 @@
 "use client"
 
-import { useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { useEffect, useRef } from "react"
+import { Cormorant_Garamond } from "next/font/google"
 import { useOrderStore } from "@/store/useOrderStore"
+import styles from "./page.module.css"
 
-const schema = z.object({
-  room_id: z.coerce.number().int().positive("Debe ser un número de habitación válido"),
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "600"],
+  variable: "--font-cormorant",
 })
-type OrderForm = z.infer<typeof schema>
 
 export default function OrdersPage() {
-  const { orders, loading, error, fetchOrders, addOrder, deleteOrder } = useOrderStore()
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<OrderForm>({
-    resolver: zodResolver(schema),
-    defaultValues: { room_id: 0 },
-  })
+  const { orders, loading, error, fetchOrders, dispatchOrder } = useOrderStore()
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     fetchOrders()
-  }, [])
-
-  const onSubmit = async (data: OrderForm) => {
-    await addOrder(data)
-    reset()
-  }
+    intervalRef.current = setInterval(fetchOrders, 15000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [fetchOrders])
 
   return (
-    <div>
-      <h1>Órdenes</h1>
-
-      {/* Formulario */}
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <h2>Nueva orden</h2>
-
-        <div>
-          <label>Habitación</label>
-          <input type="number" placeholder="Nro. habitación" {...register("room_id")} />
-          {errors.room_id && <p>{errors.room_id.message}</p>}
+    <div className={`${styles.page} ${cormorant.variable}`}>
+      <header className={styles.header}>
+        <p className={styles.hotelLabel}>Hotel Ilar</p>
+        <div className={styles.ornament}>
+          <span className={styles.ornamentLine} />
+          <span className={styles.ornamentDiamond}>◆</span>
+          <span className={styles.ornamentLine} />
         </div>
-
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creando..." : "Crear orden"}
+        <h1 className={styles.title}>Pedidos</h1>
+        <p className={styles.subtitle}>Panel del encargado</p>
+        <button className={styles.refreshBtn} onClick={fetchOrders} disabled={loading}>
+          {loading ? "…" : "↻ Actualizar"}
         </button>
-      </form>
+      </header>
 
-      {/* Error */}
-      {error && <p>{error}</p>}
+      <main className={styles.main}>
+        {loading && orders.length === 0 && (
+          <div className={styles.state}>
+            <p className={styles.stateText}>Cargando pedidos…</p>
+          </div>
+        )}
 
-      {/* Lista de órdenes */}
-      {loading ? (
-        <p>Cargando órdenes...</p>
-      ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Habitación</th>
-              <th>Total</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.length === 0 ? (
-              <tr>
-                <td colSpan={4}>No hay órdenes registradas</td>
-              </tr>
-            ) : (
-              orders.map((o) => (
-                <tr key={o.id}>
-                  <td>#{o.id}</td>
-                  <td>Hab. {o.room_id}</td>
-                  <td>S/. {Number(o.cost).toFixed(2)}</td>
-                  <td>
-                    <button onClick={() => deleteOrder(o.id)}>Eliminar</button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      )}
+        {error && (
+          <div className={styles.state}>
+            <p className={styles.stateError}>{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && orders.length === 0 && (
+          <div className={styles.empty}>
+            <p className={styles.emptyIcon}>◇</p>
+            <p className={styles.emptyText}>Sin pedidos pendientes</p>
+            <p className={styles.emptyHint}>Los pedidos nuevos aparecerán aquí automáticamente</p>
+          </div>
+        )}
+
+        {orders.length > 0 && (
+          <>
+            <div className={styles.topBar}>
+              <span className={styles.count}>
+                {orders.length} {orders.length === 1 ? "pedido pendiente" : "pedidos pendientes"}
+              </span>
+            </div>
+
+            <ul className={styles.list}>
+              {orders.map((order, idx) => (
+                <li
+                  key={order.id}
+                  className={styles.card}
+                  style={{ animationDelay: `${idx * 60}ms` }}
+                >
+                  <div className={styles.cardHeader}>
+                    <div className={styles.roomBadge}>
+                      <span className={styles.roomLabel}>Habitación</span>
+                      <span className={styles.roomNumber}>{order.room_id}</span>
+                    </div>
+                    <span className={styles.orderTotal}>
+                      ${order.cost.toLocaleString("es-CO")}
+                    </span>
+                  </div>
+
+                  {order.productOrders && order.productOrders.length > 0 && (
+                    <ul className={styles.products}>
+                      {order.productOrders.map((p) => (
+                        <li key={p.id} className={styles.productRow}>
+                          <span className={styles.productName}>{p.product_name}</span>
+                          <span className={styles.productQty}>×{p.product_quantity}</span>
+                          <span className={styles.productPrice}>
+                            ${(p.product_price * p.product_quantity).toLocaleString("es-CO")}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className={styles.cardFooter}>
+                    <span className={styles.orderId}>Pedido #{order.id}</span>
+                    <button
+                      className={styles.dispatchBtn}
+                      onClick={() => dispatchOrder(order.id)}
+                    >
+                      Despachar
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </main>
     </div>
   )
 }

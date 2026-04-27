@@ -1,0 +1,315 @@
+.page {
+  min-height: 100svh;
+  background: #F5F0E8;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+
+.header {
+  background: #1A1714;
+  padding: 2.5rem 2rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 130%, rgba(184, 153, 106, 0.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.hotelLabel {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: #B8996A;
+  margin-bottom: 1rem;
+}
+
+.ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 90px;
+  margin: 0 auto 1rem;
+}
+
+.ornamentLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(184, 153, 106, 0.35);
+}
+
+.ornamentDiamond {
+  font-size: 5px;
+  color: rgba(184, 153, 106, 0.7);
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 2.75rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: #F5F0E8;
+  line-height: 1;
+  margin-bottom: 0.6rem;
+}
+
+.subtitle {
+  font-size: 0.6rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #5C5249;
+  margin-bottom: 1.5rem;
+}
+
+.refreshBtn {
+  background: transparent;
+  border: 1px solid rgba(184, 153, 106, 0.35);
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #B8996A;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  position: relative;
+}
+
+.refreshBtn:hover {
+  border-color: #B8996A;
+  background: rgba(184, 153, 106, 0.08);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Main ── */
+
+.main {
+  flex: 1;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ── States ── */
+
+.state {
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.stateText {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  color: #8C7E70;
+}
+
+.stateError {
+  font-size: 0.85rem;
+  color: #A05050;
+}
+
+.empty {
+  padding: 5rem 0;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 2rem;
+  color: #C4B9A8;
+  margin-bottom: 1rem;
+}
+
+.emptyText {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: #1A1714;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.emptyHint {
+  font-size: 0.78rem;
+  color: #8C7E70;
+  letter-spacing: 0.04em;
+}
+
+/* ── Top bar ── */
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.count {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #B8996A;
+}
+
+/* ── Order cards ── */
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid #EDE9DF;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  animation: fadeUp 0.45s ease forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card header */
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid #F0EBE0;
+}
+
+.roomBadge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.roomLabel {
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #B8996A;
+}
+
+.roomNumber {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 2rem;
+  font-weight: 400;
+  color: #1A1714;
+  line-height: 1;
+}
+
+.orderTotal {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #1A1714;
+}
+
+/* Products list */
+
+.products {
+  list-style: none;
+  padding: 0.75rem 1.5rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-bottom: 1px solid #F0EBE0;
+}
+
+.productRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.productName {
+  flex: 1;
+  font-size: 0.88rem;
+  color: #3C3530;
+  letter-spacing: 0.01em;
+}
+
+.productQty {
+  font-size: 0.78rem;
+  color: #B8996A;
+  font-weight: 500;
+  min-width: 24px;
+  text-align: center;
+}
+
+.productPrice {
+  font-size: 0.78rem;
+  color: #8C7E70;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Card footer */
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+}
+
+.orderId {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: #C4B9A8;
+  text-transform: uppercase;
+}
+
+.dispatchBtn {
+  background: #1A1714;
+  color: #F5F0E8;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.dispatchBtn:hover {
+  background: #B8996A;
+  color: #1A1714;
+}
+
+.dispatchBtn:active {
+  transform: scale(0.97);
+}

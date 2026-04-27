@@ -153,7 +153,9 @@ npm run dev
 - `app/page.module.css`: estética hotel boutique (fondo crema `#F5F0E8`, header espresso, oro `#B8996A`, Cormorant Garamond serif)
 - `store/useCartStore.ts`: Zustand store para el carrito (add, increment, decrement, submitOrder)
 - `app/confirmation/page.tsx` + `page.module.css`: pantalla de confirmación con animación SVG del checkmark
-- El QR debe apuntar a `/?room=<número>` — el room_id se lee via `useSearchParams()`
+- El QR debe apuntar a `/menu?room=<número>` — el room_id se lee via `useSearchParams()`
+- `app/page.tsx` es ahora la landing de bienvenida (muestra productos destacados y pide número de habitación)
+- `app/menu/page.tsx` es el menú de pedidos (antes estaba en `app/page.tsx`)
 - `submitOrder` en useCartStore serializa arrays con `URLSearchParams` para compatibilidad con FastAPI
 
 ---
