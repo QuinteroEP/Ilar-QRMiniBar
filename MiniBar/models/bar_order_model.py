@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from db.database import Base
 from models.product_order_model import ProductOrder
 
-class Bar_Order(Base):
+class BarOrder(Base):
         __tablename__ = "bar_order"
 
         id: Mapped[int] = mapped_column(primary_key=True)
