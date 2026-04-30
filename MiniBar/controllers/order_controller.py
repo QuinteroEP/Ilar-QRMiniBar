@@ -45,8 +45,8 @@ async def post_orders(itemData: ProductOrderSchema, db: Session = Depends(connec
     room_order = db.query(BarOrder).filter(BarOrder.room_id == itemData.roomId).first()
     item = db.query(Product).filter(Product.id == itemData.productId).first()
 
-    if item.inventory == 0:
-        return api_response(data=None, message="Product out of stock")
+    if item.inventory == 0 or item.inventory < itemData.quantity:
+        return api_response(data=None, message="Not enough stock available")
     
     if(room_order is None):
         room_order = BarOrder(room_id=itemData.roomId, cost=0)
@@ -64,12 +64,15 @@ async def post_orders(itemData: ProductOrderSchema, db: Session = Depends(connec
         id_order = room_order.id
     )
     total_cost += item_order.product_price * item_order.product_quantity
+    new_inv = item.inventory - item_order.product_quantity
     
     setattr(room_order, "cost", total_cost)
+    setattr(item, "inventory", new_inv)
 
     db.add(item_order)
     db.commit()
     db.refresh(item_order)
+    db.refresh(item)
 
     await manager.broadcast({
         "type": "new_order",
@@ -114,11 +117,11 @@ def put_order(id: float, itemData: ProductOrderSchema, db: Session = Depends(con
 
 @router.delete("/orders/")
 def delete_order(id: float, db: Session = Depends(connect)):
-    order = db.query(BarOrder).filter(BarOrder.id == id).first()
+    room_order = db.query(BarOrder).filter(BarOrder.id == id).first()
 
-    if order is None:
+    if room_order is None:
         return api_response(data=None, message="Order not found", error=404)
     
-    db.delete(order)
+    db.delete(room_order)
     db.commit()
-    return api_response(data=order, message="Order deleted")
+    return api_response(data=room_order, message="Order deleted")
