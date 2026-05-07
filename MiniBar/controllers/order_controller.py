@@ -15,7 +15,7 @@ from utils import websocket_manager, serializer
 
 router = APIRouter()
 
-engine = create_engine(database.DATABASE_URL)
+engine = create_engine(database.DATABASE_URL, connect_args={"sslmode": "require"})
 
 Session = sessionmaker(bind=engine)
 session = Session()

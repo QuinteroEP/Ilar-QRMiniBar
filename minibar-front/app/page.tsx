@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { Cormorant_Garamond } from "next/font/google"
 import { useProductStore } from "@/store/useProductStore"
@@ -14,6 +14,14 @@ const cormorant = Cormorant_Garamond({
 })
 
 export default function Home() {
+  return (
+    <Suspense>
+      <HomeContent />
+    </Suspense>
+  )
+}
+
+function HomeContent() {
   const router = useRouter()
   const { products, fetchProducts } = useProductStore()
   const [showRoomModal, setShowRoomModal] = useState(false)

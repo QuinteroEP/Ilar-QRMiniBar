@@ -17,8 +17,8 @@ import s from "./page.module.css"
 
 const schema = z.object({
   name:      z.string().min(1, "El nombre es requerido"),
-  price:     z.coerce.number().positive("Debe ser mayor a 0"),
-  inventory: z.coerce.number().int().min(0, "No puede ser negativo"),
+  price:     z.number().positive("Debe ser mayor a 0"),
+  inventory: z.number().int().min(0, "No puede ser negativo"),
 })
 type ProductForm = z.infer<typeof schema>
 
@@ -85,13 +85,13 @@ export default function ProductsPage() {
 
               <div className={s.fieldGroup}>
                 <label className={s.label}>Precio (S/.)</label>
-                <input className={s.input} type="number" step="0.01" placeholder="0.00" {...register("price")} />
+                <input className={s.input} type="number" step="0.01" placeholder="0.00" {...register("price", { valueAsNumber: true })} />
                 {errors.price && <p className={s.fieldError}>{errors.price.message}</p>}
               </div>
 
               <div className={s.fieldGroup}>
                 <label className={s.label}>Inventario</label>
-                <input className={s.input} type="number" placeholder="0" {...register("inventory")} />
+                <input className={s.input} type="number" placeholder="0" {...register("inventory", { valueAsNumber: true })} />
                 {errors.inventory && <p className={s.fieldError}>{errors.inventory.message}</p>}
               </div>
 
