@@ -10,6 +10,7 @@ from models.product_model import Product
 from models.bar_order_model import BarOrder
 from models.product_order_model import ProductOrder
 from schemas.product_order_schema import ProductOrderSchema
+from schemas.product_order_update_schema import ProductOrderUpdateSchema
 from db import database
 from utils import websocket_manager, serializer
 from typing import List
@@ -89,7 +90,7 @@ async def post_orders(itemData: List[ProductOrderSchema] = Body(...), db: Sessio
     return api_response(data=room_order, message="New order generated")
 
 @router.put("/orders/")
-def put_order(id: float, itemData: ProductOrderSchema, db: Session = Depends(connect)):
+def put_order(id: float, itemData: ProductOrderUpdateSchema, db: Session = Depends(connect)):
     item = db.query(Product).filter(Product.id == itemData.productId).first()
     updated_order = db.query(BarOrder).filter(BarOrder.id == id).first()
     old_entry = db.query(ProductOrder).filter(ProductOrder.id_order == id, ProductOrder.id_product == itemData.productId).first()
@@ -97,9 +98,12 @@ def put_order(id: float, itemData: ProductOrderSchema, db: Session = Depends(con
     if(old_entry is None or updated_order is None):
         return api_response(data=None, message="Data not found", error=404)
 
-    setattr(updated_order, "room_id", itemData.roomId)
+    updated_data = itemData.model_dump(exclude_unset=True)
+
     new_cost = updated_order.cost - (old_entry.product_price * old_entry.product_quantity)
-    setattr(updated_order, "cost", new_cost)
+
+    for key, value in updated_data.items():
+        setattr(updated_order, key, value)
 
     db.delete(old_entry)
     db.commit()

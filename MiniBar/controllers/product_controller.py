@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from models.product_model import Product
 from db import database
 from schemas.product_schema import ProductSchema
+from schemas.product_update_schema import ProductUpdateSchema
 
 router = APIRouter()
 
@@ -46,14 +47,15 @@ def post_products(product: ProductSchema, db: Session = Depends(connect)):
     return api_response(data=new_product, message="New product added")
 
 @router.put("/products/")
-def update_product(product: ProductSchema, id: float, db: Session = Depends(connect)):
+def update_product(product: ProductUpdateSchema, id: float, db: Session = Depends(connect)):
    updated_product = db.query(Product).filter(Product.id == id).first()
    if updated_product is None:
         return api_response(data=None, message="Product not found", error=404)
-
-   setattr(updated_product, "name", product.name)
-   setattr(updated_product, "price", product.price)
-   setattr(updated_product, "inventory", product.inventory)
+   
+   updated_data = product.model_dump(exclude_unset=True)
+   
+   for key, value in updated_data.items():
+       setattr(updated_product, key, value)
    
    db.commit()
    db.refresh(updated_product)

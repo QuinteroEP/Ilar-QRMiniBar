@@ -1,6 +1,5 @@
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.database import Base
 
 class ProductOrder(Base):
@@ -12,3 +11,5 @@ class ProductOrder(Base):
         product_price: Mapped[float]
         product_quantity: Mapped[int]
         id_order: Mapped[int] = mapped_column(ForeignKey("bar_order.id"))
+
+        orderData = relationship("BarOrder", back_populates="productOrders")
