@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, Body
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db.database import connect
@@ -12,10 +12,11 @@ from models.product_order_model import ProductOrder
 from schemas.product_order_schema import ProductOrderSchema
 from db import database
 from utils import websocket_manager, serializer
+from typing import List
 
 router = APIRouter()
 
-engine = create_engine(database.DATABASE_URL, connect_args={"sslmode": "require"})
+engine = create_engine(database.DATABASE_URL, connect_args={"sslmode": "prefer"})
 
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -41,45 +42,50 @@ def get_order_by_id(id: float, db: Session = Depends(connect)):
     return api_response(data=order, message="Order found")
  
 @router.post("/orders")
-async def post_orders(itemData: ProductOrderSchema, db: Session = Depends(connect)):
-    room_order = db.query(BarOrder).filter(BarOrder.room_id == itemData.roomId).first()
-    item = db.query(Product).filter(Product.id == itemData.productId).first()
+async def post_orders(itemData: List[ProductOrderSchema] = Body(...), db: Session = Depends(connect)):
+    new_orders = []
+    for order in itemData:
+        room_order = db.query(BarOrder).filter(BarOrder.room_id == order.roomId).first()
+        item = db.query(Product).filter(Product.id == order.productId).first()
 
-    if item.inventory == 0 or item.inventory < itemData.quantity:
-        return api_response(data=None, message="Not enough stock available")
-    
-    if(room_order is None):
-        room_order = BarOrder(room_id=itemData.roomId, cost=0)
-        db.add(room_order)
+        if item.inventory == 0 or item.inventory < order.quantity:
+            return api_response(data=None, message="Not enough stock available")
+        
+        if(room_order is None):
+            room_order = BarOrder(room_id=order.roomId, cost=0)
+            db.add(room_order)
+            db.commit()
+            db.refresh(room_order)
+
+        total_cost = room_order.cost
+
+        item_order = ProductOrder(
+            id_product = item.id,
+            product_name = item.name,
+            product_price = item.price,
+            product_quantity = order.quantity,
+            id_order = room_order.id
+        )
+        total_cost += item_order.product_price * item_order.product_quantity
+        new_inv = item.inventory - item_order.product_quantity
+        
+        setattr(room_order, "cost", total_cost)
+        setattr(item, "inventory", new_inv)
+
+        db.add(item_order)
         db.commit()
-        db.refresh(room_order)
+        db.refresh(item_order)
+        db.refresh(item)
 
-    total_cost = room_order.cost
-
-    item_order = ProductOrder(
-        id_product = item.id,
-        product_name = item.name,
-        product_price = item.price,
-        product_quantity = itemData.quantity,
-        id_order = room_order.id
-    )
-    total_cost += item_order.product_price * item_order.product_quantity
-    new_inv = item.inventory - item_order.product_quantity
+        new_orders.append((item_order, room_order))
     
-    setattr(room_order, "cost", total_cost)
-    setattr(item, "inventory", new_inv)
+    for item_order, room_order in new_orders:
+        await manager.broadcast({
+                    "type": "new_order",
+                    "item_order": serializer.serialize_order(item_order),
+                    "bar_order": serializer.serialize_bar_order(room_order)
+                })
 
-    db.add(item_order)
-    db.commit()
-    db.refresh(item_order)
-    db.refresh(item)
-
-    await manager.broadcast({
-        "type": "new_order",
-        "item_order": serializer.serialize_order(item_order),
-        "bar_order": serializer.serialize_bar_order(room_order)
-    })
-    
     return api_response(data=room_order, message="New order generated")
 
 @router.put("/orders/")

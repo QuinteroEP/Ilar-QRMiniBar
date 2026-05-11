@@ -13,7 +13,7 @@ from schemas.product_schema import ProductSchema
 
 router = APIRouter()
 
-engine = create_engine(database.DATABASE_URL, connect_args={"sslmode": "require"})
+engine = create_engine(database.DATABASE_URL, connect_args={"sslmode": "prefer"})
 
 Session = sessionmaker(bind=engine)
 

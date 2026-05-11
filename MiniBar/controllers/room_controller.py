@@ -13,7 +13,7 @@ from schemas.room_schema import RoomSchema
 
 router = APIRouter()
 
-engine = create_engine(database.DATABASE_URL, connect_args={"sslmode": "require"})
+engine = create_engine(database.DATABASE_URL, connect_args={"sslmode": "prefer"})
 
 Session = sessionmaker(bind=engine)
 session = Session()
